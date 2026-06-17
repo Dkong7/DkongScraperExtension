@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Dkong Scraper Extension",
+  "version": "1.0.0",
+  "description": "Extrae los enlaces de posts guardados en TikTok, Instagram y X/Twitter para pasarlos a DkongMediaConverter.",
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://*.tiktok.com/*",
+    "*://*.instagram.com/*",
+    "*://*.x.com/*",
+    "*://*.twitter.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.tiktok.com/*",
+        "*://*.instagram.com/*",
+        "*://*.x.com/*",
+        "*://*.twitter.com/*"
+      ],
+      "js": ["content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
+  }
+}
