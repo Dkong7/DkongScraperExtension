@@ -331,12 +331,16 @@ async function startRecordingProcess(type, mode = 'video', rect = null, tab = nu
                     if (id) {
                         resolve({ id: id, source: 'tab' });
                     } else {
-                        console.warn("tabCapture failed, falling back to desktopCapture", chrome.runtime.lastError);
-                        chrome.desktopCapture.chooseDesktopMedia(['screen', 'window', 'tab', 'audio'], (deskId) => resolve({ id: deskId, source: 'desktop' }));
+                        // Consumir el error para evitar Unchecked runtime.lastError
+                        let err = chrome.runtime.lastError;
+                        console.warn("tabCapture failed, falling back to desktopCapture", err);
+                        chrome.desktopCapture.chooseDesktopMedia(['screen', 'window', 'tab', 'audio'], tab, (deskId) => resolve({ id: deskId, source: 'desktop' }));
                     }
                 });
+            } else if (tab) {
+                chrome.desktopCapture.chooseDesktopMedia(['screen', 'window', 'tab', 'audio'], tab, (deskId) => resolve({ id: deskId, source: 'desktop' }));
             } else {
-                chrome.desktopCapture.chooseDesktopMedia(['screen', 'window', 'tab', 'audio'], (deskId) => resolve({ id: deskId, source: 'desktop' }));
+                resolve(null);
             }
         });
         if (!streamInfo || !streamInfo.id) return; // Cancelado
