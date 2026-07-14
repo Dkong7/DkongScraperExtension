@@ -4,9 +4,9 @@
   "version": "2.0.0",
   "description": "Herramienta integral de capturas, grabaciones, editor de notas y descarga de manga/videos.",
   "icons": {
-    "16": "icon.png",
-    "48": "icon.png",
-    "128": "icon.png"
+    "16": "icon.svg",
+    "48": "icon.svg",
+    "128": "icon.svg"
   },
   "permissions": [
     "activeTab",
@@ -35,9 +35,9 @@
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
-      "16": "icon.png",
-      "48": "icon.png",
-      "128": "icon.png"
+      "16": "icon.svg",
+      "48": "icon.svg",
+      "128": "icon.svg"
     }
   },
   "options_page": "options.html",
