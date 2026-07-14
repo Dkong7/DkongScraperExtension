@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Dkong Scraper Extension",
-  "version": "1.0.0",
-  "description": "Extrae los enlaces de posts guardados en TikTok, Instagram y X/Twitter para pasarlos a DkongMediaConverter.",
+  "name": "Dkong Scraper & Capture",
+  "version": "2.0.0",
+  "description": "Herramienta integral de capturas, grabaciones, editor de notas y descarga de manga/videos.",
   "icons": {
     "16": "icon.png",
     "48": "icon.png",
@@ -10,23 +10,26 @@
   },
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "storage",
+    "unlimitedStorage",
+    "tabs",
+    "desktopCapture",
+    "tabCapture",
+    "downloads",
+    "offscreen"
   ],
   "host_permissions": [
-    "*://*.tiktok.com/*",
-    "*://*.instagram.com/*",
-    "*://*.x.com/*",
-    "*://*.twitter.com/*"
+    "<all_urls>"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
-      "matches": [
-        "*://*.tiktok.com/*",
-        "*://*.instagram.com/*",
-        "*://*.x.com/*",
-        "*://*.twitter.com/*"
-      ],
-      "js": ["content.js"]
+      "matches": ["<all_urls>"],
+      "js": ["content.js", "capture.js", "manga_downloader.js"],
+      "run_at": "document_idle"
     }
   ],
   "action": {
@@ -35,6 +38,21 @@
       "16": "icon.png",
       "48": "icon.png",
       "128": "icon.png"
+    }
+  },
+  "options_page": "options.html",
+  "commands": {
+    "take-screenshot": {
+      "suggested_key": { "default": "Ctrl+Shift+3", "windows": "Ctrl+Shift+3" },
+      "description": "Tomar captura de área (Imagen)"
+    },
+    "record-gif": {
+      "suggested_key": { "default": "Ctrl+Shift+4", "windows": "Ctrl+Shift+4" },
+      "description": "Grabar área de pantalla (GIF)"
+    },
+    "record-video": {
+      "suggested_key": { "default": "Ctrl+Shift+5", "windows": "Ctrl+Shift+5" },
+      "description": "Grabar área de pantalla (Video MP4/WebM)"
     }
   }
 }

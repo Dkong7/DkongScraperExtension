@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Dkong Scraper & Capture - Settings</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #fff;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-header {
+            padding: 15px;
+            font-weight: bold;
+            font-size: 16px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+        }
+        .menu-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+        }
+        .menu-item:hover {
+            background-color: #f0f0f0;
+        }
+        .menu-item.active {
+            background-color: #fffbe6;
+            border-left: 4px solid #fbbc05;
+            font-weight: 500;
+        }
+        .content {
+            flex: 1;
+            padding: 20px 40px;
+            overflow-y: auto;
+            background-color: #fafafa;
+        }
+        .section {
+            display: none;
+        }
+        .section.active {
+            display: block;
+        }
+        h2 {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #666;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .setting-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .setting-label {
+            width: 200px;
+        }
+        .setting-control {
+            flex: 1;
+        }
+        input[type="text"] {
+            padding: 6px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        button {
+            padding: 6px 15px;
+            background-color: #e0e0e0;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #d0d0d0;
+        }
+        .btn-primary {
+            background-color: #fbbc05;
+            border-color: #d49a00;
+            font-weight: bold;
+        }
+        .btn-primary:hover {
+            background-color: #e5ab00;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: calc(100% - 200px);
+            background-color: #fafafa;
+            border-top: 1px solid #ddd;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            ☁️ Settings
+        </div>
+        <div class="menu-item active" data-target="general">⚙️ General</div>
+        <div class="menu-item" data-target="hotkeys">⌨️ Hotkeys</div>
+        <div class="menu-item" data-target="capturing">📸 Capturing</div>
+        <div class="menu-item" data-target="manga">📚 Manga / Descargas</div>
+    </div>
+
+    <div class="content">
+        <!-- GENERAL -->
+        <div id="general" class="section active">
+            <h2>General</h2>
+            <div class="setting-row">
+                <div class="setting-label">Comportamiento al capturar</div>
+                <div class="setting-control">
+                    <label><input type="checkbox" id="openEditor" checked> Abrir editor después de capturar imagen</label>
+                </div>
+            </div>
+            <div class="setting-row">
+                <div class="setting-label">Sonidos</div>
+                <div class="setting-control">
+                    <label><input type="checkbox" id="playShutterSound" checked> Reproducir sonido al capturar</label>
+                </div>
+            </div>
+            
+            <h2>Ruta de Salida Local</h2>
+            <p style="font-size:12px; color:#666;">Selecciona la carpeta donde se guardarán todas las capturas, videos y descargas de manga directamente en tu disco, ignorando la carpeta de Descargas por defecto de Chrome.</p>
+            <div class="setting-row">
+                <div class="setting-control" style="display: flex; gap: 10px;">
+                    <input type="text" id="outputFolderDisplay" readonly placeholder="Ninguna carpeta seleccionada (Se usará la carpeta de Descargas predeterminada)">
+                    <button id="btnSelectFolder">Seleccionar Carpeta...</button>
+                </div>
+            </div>
+            <p id="folderStatus" style="font-size:12px; color:#d93025; display:none;">⚠️ Debes conceder permiso de escritura.</p>
+        </div>
+
+        <!-- HOTKEYS -->
+        <div id="hotkeys" class="section">
+            <h2>Capturing Hotkeys</h2>
+            <p style="font-size:12px; color:#666;">Los atajos globales se configuran directamente en Chrome. Haz clic en el botón para abrirlos.</p>
+            <button id="btnOpenShortcuts">Abrir Configuración de Atajos de Chrome</button>
+        </div>
+
+        <!-- CAPTURING -->
+        <div id="capturing" class="section">
+            <h2>Screenshots</h2>
+            <div class="setting-row">
+                <div class="setting-label">Formato de Imagen</div>
+                <div class="setting-control">
+                    <label><input type="radio" name="imageFormat" value="png" checked> PNG</label>
+                    <label style="margin-left: 15px;"><input type="radio" name="imageFormat" value="jpeg"> JPG</label>
+                </div>
+            </div>
+
+            <h2>Recording</h2>
+            <div class="setting-row">
+                <div class="setting-label">Formato de Video</div>
+                <div class="setting-control">
+                    <label><input type="radio" name="videoFormat" value="webm" checked> WebM (Nativo, Ligero)</label>
+                    <label style="margin-left: 15px;"><input type="radio" name="videoFormat" value="mp4"> MP4 (Requiere procesamiento interno)</label>
+                    <label style="margin-left: 15px;"><input type="radio" name="videoFormat" value="gif"> GIF (Sin audio)</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- MANGA -->
+        <div id="manga" class="section">
+            <h2>Manga Downloader (Inmanga)</h2>
+            <div class="setting-row">
+                <div class="setting-label">Subcarpeta Manga</div>
+                <div class="setting-control">
+                    <input type="text" id="mangaSubfolder" placeholder="Ej: Mangas_Descargados" value="Mangas">
+                    <p style="font-size: 11px; color:#666; margin-top:4px;">Se creará una subcarpeta con este nombre dentro de tu directorio de salida seleccionado.</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="height: 60px;"></div> <!-- Spacer -->
+    </div>
+
+    <div class="footer">
+        <button id="btnSave" class="btn-primary">Guardar Configuración</button>
+        <span id="saveStatus" style="margin-left: 10px; color: green; align-self: center; display: none;">Guardado!</span>
+    </div>
+
+    <script src="storage_manager.js"></script>
+    <script src="options.js"></script>
+</body>
+</html>

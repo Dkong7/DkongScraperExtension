@@ -1,210 +1,239 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dkong Scraper</title>
+    <meta charset="utf-8">
+    <title>Dkong Scraper & Capture</title>
     <style>
         body {
-            width: 380px;
-            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #1c1714;
-            color: #fff;
+            width: 350px;
             margin: 0;
-            padding: 15px;
-            box-sizing: border-box;
-            max-height: 600px;
-            display: flex;
-            flex-direction: column;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #2c251f;
+            color: #f4efe6;
         }
-        h2 {
-            font-size: 16px;
-            margin-top: 0;
-            color: #e5d3b3;
-            border-bottom: 1px solid #45362e;
-            padding-bottom: 10px;
-            text-align: center;
-        }
-        p.instrucciones {
-            font-size: 12px;
-            color: #a49182;
-            margin-bottom: 15px;
-            line-height: 1.4;
-        }
-        button {
-            width: 100%;
-            background-color: #c85a17;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 6px;
-            cursor: pointer;
+        .header {
+            background-color: #d97736;
+            color: #2c251f;
+            padding: 10px 15px;
             font-weight: bold;
-            font-size: 14px;
-            transition: background 0.2s;
-            margin-bottom: 10px;
-        }
-        button:hover {
-            background-color: #e63946;
-        }
-        button:active {
-            transform: scale(0.98);
-        }
-        button.btn-copy {
-            background-color: #45362e;
-            display: none;
-            margin-top: 10px;
-        }
-        button.btn-copy:hover {
-            background-color: #5c4a3d;
-        }
-        
-        #status {
-            font-size: 12px;
-            color: #e63946;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        /* Contenedor de Tarjetas */
-        #results-container {
-            display: none;
-            flex-direction: column;
-            flex: 1;
-            overflow-y: hidden;
-        }
-
-        .controls-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
-            padding: 0 5px;
-            font-size: 12px;
-            color: #e5d3b3;
         }
-
-        .controls-row label {
+        .header-title {
+            font-size: 16px;
+        }
+        .btn-settings {
+            background: none;
+            border: none;
+            color: #2c251f;
             cursor: pointer;
+            font-size: 18px;
+        }
+        .tabs {
             display: flex;
-            align-items: center;
-            gap: 5px;
+            background-color: #3e352d;
+            border-bottom: 2px solid #594a3d;
         }
-
-        #cards-list {
-            max-height: 300px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding-right: 5px;
-        }
-
-        /* Custom Scrollbar */
-        #cards-list::-webkit-scrollbar {
-            width: 6px;
-        }
-        #cards-list::-webkit-scrollbar-track {
-            background: #2a221d; 
-            border-radius: 4px;
-        }
-        #cards-list::-webkit-scrollbar-thumb {
-            background: #45362e; 
-            border-radius: 4px;
-        }
-
-        /* Tarjeta individual */
-        .card {
-            display: flex;
-            align-items: center;
-            background-color: #2a221d;
-            border: 1px solid #45362e;
-            border-radius: 8px;
-            padding: 8px;
-            gap: 10px;
-            cursor: pointer;
-            transition: background 0.2s, border-color 0.2s;
-        }
-        .card:hover {
-            background-color: #352a23;
-        }
-        .card.selected {
-            border-color: #c85a17;
-            background-color: rgba(200, 90, 23, 0.1);
-        }
-
-        .card-checkbox {
-            margin: 0;
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-            accent-color: #c85a17;
-        }
-
-        .card-thumb {
-            width: 40px;
-            height: 40px;
-            border-radius: 4px;
-            object-fit: cover;
-            background-color: #1c1714;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            color: #a49182;
-            overflow: hidden;
-        }
-
-        .card-info {
+        .tab {
             flex: 1;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .card-url {
-            font-size: 11px;
-            color: #e5d3b3;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-family: monospace;
-        }
-
-        .footer {
-            font-size: 10px;
             text-align: center;
-            color: #5c4a3d;
-            margin-top: 10px;
+            padding: 10px 0;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: #bfaea2;
+        }
+        .tab.active {
+            color: #d97736;
+            border-bottom: 2px solid #d97736;
+        }
+        .tab-content {
+            display: none;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #594a3d;
+            border: 1px solid #736151;
+            color: #f4efe6;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background-color: #736151;
+        }
+        .btn-primary {
+            background-color: #d97736;
+            color: #2c251f;
+            font-weight: bold;
+            border: none;
+            text-align: center;
+        }
+        .btn-primary:hover {
+            background-color: #b8622b;
+        }
+        .btn-danger {
+            background-color: #a8463c;
+            color: #f4efe6;
+            text-align: center;
+            border: none;
+            font-weight: bold;
+        }
+        .btn-danger:hover {
+            background-color: #8f382f;
+        }
+        .input-text {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            background-color: #3e352d;
+            border: 1px solid #736151;
+            color: #f4efe6;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        #status {
+            font-size: 12px;
+            margin-bottom: 10px;
+            color: #bfaea2;
+            text-align: center;
+        }
+        .action-btn {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background-color: #594a3d;
+            border: 1px solid #736151;
+            color: #f4efe6;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .action-btn:hover { background-color: #736151; border-color: #d97736; }
+        .action-btn .icon { font-size: 20px; margin-right: 12px; }
+        .action-btn .text { flex: 1; text-align: left; font-size: 14px; font-weight: 500; }
+        .action-btn .shortcut { font-size: 11px; color: #bfaea2; }
+        /* Scraper old styles */
+        .card {
+            background: #3e352d;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        .card.selected { border-color: #d97736; }
+        .card-thumb {
+            width: 40px; height: 40px;
+            background: #594a3d; margin: 0 10px;
+            border-radius: 4px; overflow: hidden;
+            flex-shrink: 0;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 10px; color: #bfaea2;
+        }
+        .card-info { flex: 1; overflow: hidden; }
+        .card-url {
+            font-size: 11px; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; color: #bfaea2;
         }
     </style>
 </head>
 <body>
-    <h2>🐒 Dkong Scraper Extension</h2>
-    <p class="instrucciones">
-        1. Ve a tu sección de Guardados/Favoritos (X, IG o TikTok).<br>
-        2. Haz "scroll" hacia abajo con tu mouse.<br>
-        3. Haz clic en el botón de abajo.
-    </p>
 
-    <button id="btn-extract">🔍 Extraer Enlaces en Pantalla</button>
-    <div id="status"></div>
-    
-    <div id="results-container">
-        <div class="controls-row">
-            <label>
-                <input type="checkbox" id="cb-select-all" checked>
-                Seleccionar todos
-            </label>
-            <span id="selected-count">0 seleccionados</span>
-        </div>
-        <div id="cards-list"></div>
-        <button id="btn-copy" class="btn-copy">📋 Copiar Seleccionados</button>
+    <div class="header">
+        <div class="header-title">🐒 Dkong Capture</div>
+        <button class="btn-settings" id="btnSettings" title="Configuraciones">⚙️</button>
     </div>
 
-    <div class="footer">DkongMediaConverter Tool</div>
+    <div class="tabs">
+        <div class="tab active" data-target="tab-capture">📸 Captura</div>
+        <div class="tab" data-target="tab-record">🎥 Grabar</div>
+        <div class="tab" data-target="tab-download">⬇️ Descargar</div>
+        <div class="tab" data-target="tab-scraper">🔗 Scraper</div>
+    </div>
+
+    <div id="status">Selecciona una acción</div>
+
+    <!-- PESTAÑA CAPTURA -->
+    <div id="tab-capture" class="tab-content active">
+        <button class="btn" id="btnCaptureArea">🔳 Capturar Área <span style="float:right; font-size: 10px; color:#aaa;">(Ctrl+Shift+3)</span></button>
+        <button class="btn" id="btnCaptureVisible">🖥️ Pantalla Visible</button>
+        <button class="btn" id="btnCaptureFull">📜 Página Completa (Scroll)</button>
+    </div>
+
+    <!-- PESTAÑA GRABAR -->
+    <div id="tab-record" class="tab-content">
+        <p style="margin-top: 0; font-size: 12px; color: #aaa; text-align: center;">Selecciona una acción</p>
+        
+        <button class="action-btn" id="btnRecordVideo">
+            <span class="icon">🎥</span>
+            <span class="text">Grabar Pantalla (Video)</span>
+            <span class="shortcut">(Ctrl+Shift+5)</span>
+        </button>
+
+        <button class="action-btn" id="btnRecordGif">
+            <span class="icon">🎬</span>
+            <span class="text">Grabar Pantalla (GIF)</span>
+            <span class="shortcut">(Ctrl+Shift+4)</span>
+        </button>
+
+        <button class="action-btn" id="btnRecordAudio">
+            <span class="icon">🔊</span>
+            <span class="text">Grabar Audio (Pestaña)</span>
+            <span class="shortcut"></span>
+        </button>
+
+        <div id="recording-active" style="display: none; text-align: center; padding: 20px 0;">
+            <div style="color: red; font-size: 24px; margin-bottom: 10px;">🔴 Grabando...</div>
+            <div id="recording-time" style="font-size: 18px; margin-bottom: 15px;">00:00</div>
+            <button class="btn btn-danger" id="btnStopRecord">⏹️ Detener Grabación</button>
+        </div>
+    </div>
+
+    <!-- PESTAÑA DESCARGAR -->
+    <div id="tab-download" class="tab-content">
+        <h4 style="margin-top:0; font-size: 12px; color: #d97736;">Descargar Manga Activo</h4>
+        <button class="btn btn-primary" id="btnDownloadManga">📖 Descargar Capítulo Actual de Inmanga</button>
+        
+        <hr style="border-color: #333; margin: 15px 0;">
+
+        <h4 style="margin-top:0; font-size: 12px; color: #d97736;">Descarga Manual (Link)</h4>
+        <p style="font-size:11px; color:#aaa; margin-top:0;">Pega un link de Inmanga, YouTube, IG o TikTok.</p>
+        <input type="text" id="manualLinkInput" class="input-text" placeholder="https://inmanga.com/ver/manga/..." style="width: 100%;">
+        <button class="btn btn-primary" id="btnManualDownload" style="width: 100%;">⬇️ Iniciar Descarga</button>
+    </div>
+
+    <!-- PESTAÑA SCRAPER -->
+    <div id="tab-scraper" class="tab-content">
+        <h4 style="margin-top:0; font-size: 12px; color: #d97736;">Scraper de Enlaces (Redes Sociales)</h4>
+        <p style="font-size:11px; color:#aaa; margin-top:0;">Extrae enlaces en lote de YouTube, TikTok, IG, X.</p>
+        <button class="btn btn-primary" id="btnExtractLinks" style="width: 100%;">🔍 Extraer Enlaces de la Página</button>
+        
+        <div id="results-container" style="display: none; flex-direction: column; margin-top: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <label style="font-size: 12px; cursor: pointer; color: #ccc;"><input type="checkbox" id="cb-select-all" checked> Todos</label>
+                <span id="selected-count" style="font-size: 12px; color: #888;">0 seleccionados</span>
+            </div>
+            <div id="cards-list"></div>
+            <button class="btn btn-primary" id="btnCopyLinks" style="margin-top: 10px;">📋 Copiar Enlaces</button>
+        </div>
+    </div>
 
     <script src="popup.js"></script>
 </body>

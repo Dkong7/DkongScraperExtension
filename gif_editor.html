@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Dkong Capture - Editor de Fotogramas</title>
+    <style>
+        body {
+            margin: 0; padding: 0;
+            background-color: #2c251f; color: #f4efe6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex; flex-direction: column; height: 100vh;
+        }
+        .header {
+            background-color: #3e352d;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #d97736;
+        }
+        .header h1 { margin: 0; font-size: 18px; color: #d97736; }
+        .controls { display: flex; gap: 10px; }
+        .btn {
+            background-color: #594a3d; border: 1px solid #736151;
+            color: #f4efe6; padding: 8px 15px; border-radius: 4px; cursor: pointer;
+        }
+        .btn:hover { background-color: #736151; }
+        .btn-primary { background-color: #d97736; color: #2c251f; font-weight: bold; border:none; }
+        .btn-primary:hover { background-color: #b8622b; }
+        .frames-container {
+            flex: 1; padding: 20px; overflow-y: auto;
+            display: flex; flex-wrap: wrap; gap: 10px; align-content: flex-start;
+        }
+        .frame-box {
+            position: relative; width: 120px; height: 90px;
+            background: #1a1512; border: 2px solid transparent; border-radius: 4px;
+            cursor: pointer; overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .frame-box:hover { border-color: #d97736; }
+        .frame-box.deleted { opacity: 0.3; border-color: #a8463c; }
+        .frame-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .frame-box .badge {
+            position: absolute; top: 2px; left: 2px;
+            background: rgba(0,0,0,0.7); color: white;
+            font-size: 10px; padding: 2px 4px; border-radius: 2px;
+        }
+        .frame-box .delete-icon {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 24px; color: #a8463c; display: none;
+        }
+        .frame-box.deleted .delete-icon { display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Editor de Fotogramas (GIF/WebM)</h1>
+        <div class="controls">
+            <span id="frameCount" style="align-self: center; font-size: 14px; color:#aaa;">0 fotogramas</span>
+            <button class="btn" id="btnPlayPreview">▶️ Previsualizar</button>
+            <button class="btn btn-primary" id="btnSave">💾 Generar y Guardar</button>
+        </div>
+    </div>
+
+    <div class="frames-container" id="framesContainer">
+        <!-- Frames go here -->
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
+        <img id="previewImg" style="max-width:80%; max-height:80%;">
+        <button class="btn btn-primary" id="btnClosePreview" style="position:absolute; top:20px; right:20px;">Cerrar Preview</button>
+    </div>
+
+    <script src="storage_manager.js"></script>
+    <script src="gif_editor.js"></script>
+</body>
+</html>

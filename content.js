@@ -76,6 +76,37 @@ function extractUrlsFromDOM() {
             }
         });
     }
+    else if (url.includes('youtube.com')) {
+        const aTags = document.querySelectorAll('a[href*="/watch?v="], a[href*="/shorts/"]');
+        aTags.forEach(a => {
+            const href = a.href;
+            if (href) {
+                let cleanUrl = null;
+                if (href.includes('/shorts/')) {
+                    const match = href.match(/\/shorts\/([^&?]+)/);
+                    if (match) cleanUrl = 'https://www.youtube.com/shorts/' + match[1];
+                } else {
+                    try {
+                        const urlObj = new URL(href);
+                        const v = urlObj.searchParams.get('v');
+                        if (v) cleanUrl = 'https://www.youtube.com/watch?v=' + v;
+                    } catch (e) {}
+                }
+                
+                if (cleanUrl) {
+                    let thumbSrc = null;
+                    const img = a.querySelector('img');
+                    if (img && img.src) thumbSrc = img.src;
+                    
+                    if (!itemsMap.has(cleanUrl)) {
+                        itemsMap.set(cleanUrl, { url: cleanUrl, thumb: thumbSrc });
+                    } else if (thumbSrc && !itemsMap.get(cleanUrl).thumb) {
+                        itemsMap.get(cleanUrl).thumb = thumbSrc;
+                    }
+                }
+            }
+        });
+    }
 }
 
 // Escanear el DOM cada 1.5 segundos para capturar nuevos elementos a medida que el usuario hace scroll

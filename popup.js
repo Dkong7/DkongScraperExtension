@@ -1,13 +1,159 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const btnExtract = document.getElementById('btn-extract');
-    const btnCopy = document.getElementById('btn-copy');
     const status = document.getElementById('status');
+
+    // Tab Navigation
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            
+            tab.classList.add('active');
+            document.getElementById(tab.dataset.target).classList.add('active');
+        });
+    });
+
+    // Settings Button
+    document.getElementById('btnSettings').addEventListener('click', () => {
+        chrome.runtime.openOptionsPage();
+    });
+
+    // --- TAB CAPTURE ---
+    document.getElementById('btnCaptureArea').addEventListener('click', () => {
+        status.innerText = "Selecciona un área...";
+        chrome.runtime.sendMessage({ action: 'start_capture_area', mode: 'screenshot' });
+        window.close();
+    });
+
+    document.getElementById('btnCaptureVisible').addEventListener('click', () => {
+        status.innerText = "Capturando...";
+        chrome.runtime.sendMessage({ action: 'capture_visible' });
+        window.close();
+    });
+
+    document.getElementById('btnCaptureFull').addEventListener('click', () => {
+        status.innerText = "Haciendo scroll y capturando...";
+        chrome.runtime.sendMessage({ action: 'start_full_page_capture' });
+        window.close();
+    });
+
+    // --- TAB GRABAR ---
+    const btnRecordVideo = document.getElementById('btnRecordVideo');
+    const btnRecordGif = document.getElementById('btnRecordGif');
+    const btnRecordAudio = document.getElementById('btnRecordAudio');
+    const btnStopRecord = document.getElementById('btnStopRecord');
+    const recordControls = document.querySelector('#tab-record'); // Parent holding the buttons
+    const recordingActive = document.getElementById('recording-active');
+    
+    // Función para manejar la visibilidad de los controles
+    function updateRecordUI(isRecording) {
+        if (isRecording) {
+            btnRecordVideo.style.display = 'none';
+            btnRecordGif.style.display = 'none';
+            btnRecordAudio.style.display = 'none';
+            document.querySelector('#tab-record p').style.display = 'none';
+            recordingActive.style.display = 'block';
+            startTimer();
+        } else {
+            btnRecordVideo.style.display = 'flex';
+            btnRecordGif.style.display = 'flex';
+            btnRecordAudio.style.display = 'flex';
+            document.querySelector('#tab-record p').style.display = 'block';
+            recordingActive.style.display = 'none';
+            stopTimer();
+        }
+    }
+
+    if (btnRecordVideo) btnRecordVideo.addEventListener('click', () => {
+        chrome.runtime.sendMessage({ action: 'start_capture_area', mode: 'video' });
+        window.close();
+    });
+
+    if (btnRecordGif) btnRecordGif.addEventListener('click', () => {
+        chrome.runtime.sendMessage({ action: 'start_capture_area', mode: 'gif' });
+        window.close();
+    });
+
+    if (btnRecordAudio) btnRecordAudio.addEventListener('click', () => {
+        chrome.runtime.sendMessage({ action: 'start_audio_record' });
+        updateRecordUI(true);
+    });
+
+    const recordingTime = document.getElementById('recording-time');
+    let timerInterval = null;
+    let startTime = 0;
+
+    function updateTimer() {
+        const diff = Math.floor((Date.now() - startTime) / 1000);
+        const mins = String(Math.floor(diff / 60)).padStart(2, '0');
+        const secs = String(diff % 60).padStart(2, '0');
+        recordingTime.innerText = `${mins}:${secs}`;
+    }
+
+    function startTimer() {
+        startTime = Date.now();
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function stopTimer() {
+        clearInterval(timerInterval);
+    }
+
+    if (btnStopRecord) {
+        btnStopRecord.addEventListener('click', () => {
+            chrome.runtime.sendMessage({ action: 'stop_recording' });
+            updateRecordUI(false);
+            status.innerText = "Procesando...";
+        });
+    }
+
+    // --- TAB DOWNLOAD ---
+    document.getElementById('btnDownloadManga').addEventListener('click', async () => {
+        status.innerText = "Extrayendo manga...";
+        try {
+            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            chrome.tabs.sendMessage(tab.id, { action: 'download_manga' });
+            window.close();
+        } catch (e) {
+            status.innerText = "Error: " + e.message;
+        }
+    });
+
+    document.getElementById('btnManualDownload').addEventListener('click', () => {
+        const url = document.getElementById('manualLinkInput').value.trim();
+        if (!url) return alert('Por favor, pega un enlace válido.');
+        
+        status.innerText = "Iniciando descarga manual...";
+        
+        if (url.includes('inmanga.com')) {
+            // Descarga nativa de manga en background
+            chrome.runtime.sendMessage({ action: 'download_manual_manga', url: url });
+            status.innerText = "Descargando Manga...";
+            setTimeout(() => window.close(), 1500);
+        } else {
+            // Enviar a DkongMediaConverter
+            fetch('http://localhost:5000/download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ urls: [url] })
+            }).then(r => {
+                status.innerText = "¡Enviado al Converter!";
+                setTimeout(() => window.close(), 1500);
+            }).catch(e => {
+                status.innerText = "Error: ¿Está abierto el Converter? " + e.message;
+            });
+        }
+    });
+
+    // Old Scraper Logic
+    const btnExtractLinks = document.getElementById('btnExtractLinks');
+    const btnCopyLinks = document.getElementById('btnCopyLinks');
     const resultsContainer = document.getElementById('results-container');
     const cardsList = document.getElementById('cards-list');
     const cbSelectAll = document.getElementById('cb-select-all');
     const selectedCount = document.getElementById('selected-count');
-
-    let extractedData = [];
 
     function updateSelectedCount() {
         const checkedBoxes = cardsList.querySelectorAll('.card-checkbox:checked');
@@ -25,127 +171,80 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSelectedCount();
     });
 
-    btnExtract.addEventListener('click', async () => {
+    btnExtractLinks.addEventListener('click', async () => {
         status.innerText = 'Analizando página...';
-        status.style.color = '#e5d3b3';
         resultsContainer.style.display = 'none';
         cardsList.innerHTML = '';
         
         try {
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            
-            if (!tab || !tab.url) {
-                throw new Error('No se pudo acceder a la pestaña activa.');
-            }
-
             const results = await new Promise((resolve) => {
-                chrome.tabs.sendMessage(tab.id, { action: 'get_extracted_urls' }, (res) => {
-                    resolve(res);
-                });
+                chrome.tabs.sendMessage(tab.id, { action: 'get_extracted_urls' }, resolve);
             });
 
-            if (chrome.runtime.lastError || !results) {
-                throw new Error('Por favor, recarga la pestaña de X/Twitter para que el nuevo sistema de captura de historial empiece a funcionar.');
-            }
-
             if (results && results.length > 0) {
-                extractedData = results;
-                if (extractedData.length > 0) {
-                    status.innerText = `¡Éxito! Se encontraron ${extractedData.length} enlaces.`;
-                    status.style.color = '#a3c293';
+                status.innerText = `¡Éxito! ${results.length} enlaces.`;
+                results.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'card selected';
                     
-                    // Renderizar tarjetas
-                    extractedData.forEach((item, index) => {
-                        const card = document.createElement('div');
-                        card.className = 'card selected';
-                        
-                        // Checkbox
-                        const cb = document.createElement('input');
-                        cb.type = 'checkbox';
-                        cb.className = 'card-checkbox';
-                        cb.checked = true;
-                        cb.dataset.url = item.url;
-                        
-                        // Thumb
-                        const thumb = document.createElement('div');
-                        thumb.className = 'card-thumb';
-                        if (item.thumb) {
-                            const img = document.createElement('img');
-                            img.src = item.thumb;
-                            img.style.width = '100%';
-                            img.style.height = '100%';
-                            img.style.objectFit = 'cover';
-                            thumb.appendChild(img);
-                        } else {
-                            thumb.innerText = 'Sin IMG';
-                        }
-                        
-                        // Info
-                        const info = document.createElement('div');
-                        info.className = 'card-info';
-                        
-                        const urlText = document.createElement('div');
-                        urlText.className = 'card-url';
-                        urlText.innerText = item.url.replace('https://www.', '').replace('https://', '');
-                        urlText.title = item.url;
-                        
-                        info.appendChild(urlText);
-                        
-                        // Armar tarjeta
-                        card.appendChild(cb);
-                        card.appendChild(thumb);
-                        card.appendChild(info);
-                        
-                        // Eventos para seleccionar la tarjeta clickeando en cualquier parte
-                        card.addEventListener('click', (e) => {
-                            if (e.target !== cb) {
-                                cb.checked = !cb.checked;
-                            }
-                            if (cb.checked) card.classList.add('selected');
-                            else card.classList.remove('selected');
-                            
-                            // Check if all are selected to update the "Select All" checkbox
-                            const allBoxes = cardsList.querySelectorAll('.card-checkbox');
-                            const allChecked = Array.from(allBoxes).every(b => b.checked);
-                            cbSelectAll.checked = allChecked;
-                            
-                            updateSelectedCount();
-                        });
-                        
-                        cardsList.appendChild(card);
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.className = 'card-checkbox';
+                    cb.checked = true;
+                    cb.dataset.url = item.url;
+                    
+                    const thumb = document.createElement('div');
+                    thumb.className = 'card-thumb';
+                    if (item.thumb) {
+                        const img = document.createElement('img');
+                        img.src = item.thumb;
+                        img.style.width = '100%';
+                        img.style.height = '100%';
+                        img.style.objectFit = 'cover';
+                        thumb.appendChild(img);
+                    } else {
+                        thumb.innerText = 'IMG';
+                    }
+                    
+                    const info = document.createElement('div');
+                    info.className = 'card-info';
+                    const urlText = document.createElement('div');
+                    urlText.className = 'card-url';
+                    urlText.innerText = item.url;
+                    info.appendChild(urlText);
+                    
+                    card.appendChild(cb);
+                    card.appendChild(thumb);
+                    card.appendChild(info);
+                    
+                    card.addEventListener('click', (e) => {
+                        if (e.target !== cb) cb.checked = !cb.checked;
+                        if (cb.checked) card.classList.add('selected');
+                        else card.classList.remove('selected');
+                        updateSelectedCount();
                     });
                     
-                    resultsContainer.style.display = 'flex';
-                    btnCopy.style.display = 'block';
-                    updateSelectedCount();
-                    cbSelectAll.checked = true;
-                } else {
-                    status.innerText = 'No se encontraron enlaces soportados en esta página.';
-                    status.style.color = '#e63946';
-                }
+                    cardsList.appendChild(card);
+                });
+                
+                resultsContainer.style.display = 'flex';
+                updateSelectedCount();
+            } else {
+                status.innerText = 'No se encontraron enlaces soportados.';
             }
-
         } catch (error) {
             status.innerText = 'Error: ' + error.message;
-            status.style.color = '#e63946';
         }
     });
 
-    btnCopy.addEventListener('click', () => {
+    btnCopyLinks.addEventListener('click', () => {
         const checkedBoxes = cardsList.querySelectorAll('.card-checkbox:checked');
         if (checkedBoxes.length === 0) return;
-        
-        const urlsToCopy = Array.from(checkedBoxes).map(cb => cb.dataset.url);
-        const textToCopy = urlsToCopy.join('\n');
-        
+        const textToCopy = Array.from(checkedBoxes).map(cb => cb.dataset.url).join('\n');
         navigator.clipboard.writeText(textToCopy).then(() => {
-            const originalText = btnCopy.innerText;
-            btnCopy.innerText = `✅ ¡${checkedBoxes.length} copiados!`;
-            setTimeout(() => {
-                btnCopy.innerText = originalText;
-            }, 2000);
+            btnCopyLinks.innerText = `✅ ¡Copiados!`;
+            setTimeout(() => { btnCopyLinks.innerText = '📋 Copiar Enlaces'; }, 2000);
         });
     });
 });
-
-// Función movida a content.js para recolección en segundo plano

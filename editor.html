@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Dkong Scraper & Capture - Editor</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .toolbar {
+            background-color: #2d2d2d;
+            padding: 10px 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            border-bottom: 2px solid #fbbc05;
+        }
+        .tool-btn {
+            background-color: #3d3d3d;
+            border: 1px solid #4d4d4d;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .tool-btn:hover { background-color: #4d4d4d; }
+        .tool-btn.active {
+            background-color: #fbbc05;
+            color: #1e1e1e;
+            font-weight: bold;
+        }
+        .color-picker {
+            width: 30px;
+            height: 30px;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+        }
+        .canvas-container {
+            flex: 1;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: #111;
+        }
+        canvas {
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            max-width: 100%;
+            cursor: crosshair;
+        }
+        .btn-save {
+            background-color: #28a745;
+            color: white;
+            font-weight: bold;
+            margin-left: auto;
+        }
+        .btn-save:hover { background-color: #218838; }
+    </style>
+</head>
+<body>
+
+    <div class="toolbar">
+        <button class="tool-btn active" data-tool="rect">⬜ Rectángulo</button>
+        <button class="tool-btn" data-tool="arrow">➡️ Flecha</button>
+        <button class="tool-btn" data-tool="text">T Texto</button>
+        <input type="color" id="colorPicker" class="color-picker" value="#fbbc05">
+        <button class="tool-btn" id="btnCopy" style="margin-left: auto;">📋 Copiar</button>
+        <button class="tool-btn btn-save" id="btnSave">💾 Guardar</button>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="editorCanvas"></canvas>
+    </div>
+
+    <script src="storage_manager.js"></script>
+    <script src="editor.js"></script>
+</body>
+</html>
