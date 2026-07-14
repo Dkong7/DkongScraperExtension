@@ -1,38 +1,31 @@
 // manga_downloader.js
 
-function extractInmangaImages() {
-    // Inmanga uses a select box for pages, or dynamically loads them.
-    // Usually, images are inside a container with id 'PageContainer' or similar.
+function extractAllImages() {
     let imgContainer = document.getElementById('PageContainer') || document.body;
-    let imgs = Array.from(imgContainer.querySelectorAll('img.ImageContainer, img.manga-page, img'));
+    let imgs = Array.from(imgContainer.querySelectorAll('img'));
     
-    // Filter out UI images, keep only those that look like manga pages
-    let mangaImgs = imgs.filter(img => {
-        let src = img.getAttribute('data-src') || img.src;
-        return src && (src.includes('/manga/') || src.includes('page'));
+    // Grab possible sources from common lazy-load attributes
+    let urls = imgs.map(img => {
+        return img.getAttribute('data-src') || 
+               img.getAttribute('data-lazy-src') || 
+               img.getAttribute('data-original') || 
+               img.getAttribute('data-image') || 
+               img.src;
+    }).filter(src => {
+        if (!src) return false;
+        // Ignore inline base64 if it's purely generic tiny data 
+        if (src.startsWith('data:image') && src.length < 1000) return false; 
+        return true;
     });
 
-    // Fallback: If no images found, maybe they are in a JS array or we need to scroll.
-    // We will just grab all large images on the page.
-    if (mangaImgs.length === 0) {
-        mangaImgs = Array.from(document.querySelectorAll('img')).filter(img => {
-            return img.width > 300 && img.height > 400; // Typical manga page size
-        });
-    }
-
-    let urls = mangaImgs.map(img => {
-        let src = img.getAttribute('data-src') || img.src;
-        try {
-            return new URL(src, window.location.href).href;
-        } catch (e) {
-            return src;
-        }
+    // Resolve relative URLs to absolute
+    let absoluteUrls = urls.map(src => {
+        try { return new URL(src, window.location.href).href; } 
+        catch (e) { return src; }
     });
     
     // Remove duplicates
-    urls = [...new Set(urls)];
-
-    return urls;
+    return [...new Set(absoluteUrls)];
 }
 
 // Escuchar peticiones del background o popup
@@ -44,17 +37,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         toast.style.position = 'fixed';
         toast.style.bottom = '20px';
         toast.style.right = '20px';
-        toast.style.background = '#fbbc05';
-        toast.style.color = '#1e1e1e';
+        toast.style.background = '#d97736';
+        toast.style.color = '#f4efe6';
         toast.style.padding = '15px 20px';
         toast.style.borderRadius = '8px';
         toast.style.zIndex = '999999';
         toast.style.fontWeight = 'bold';
         document.body.appendChild(toast);
 
-        // Auto-scroll para forzar el lazy-loader de Inmanga
+        // Auto-scroll para forzar el lazy-loader
         let totalHeight = document.body.scrollHeight;
-        let distance = 600;
+        let distance = 800;
         let currentScroll = 0;
         
         let timer = setInterval(() => {
@@ -70,7 +63,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 toast.innerText = `Extrayendo imágenes...`;
                 
                 setTimeout(() => {
-                    const urls = extractInmangaImages();
+                    const urls = extractAllImages();
                     
                     if (urls.length === 0) {
                         toast.innerText = "Error: No se encontraron imágenes.";
@@ -79,7 +72,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     }
 
                     // Get title from document
-                    let titleText = document.title.replace(/[^a-zA-Z0-9 ]/g, "").trim() || "Manga";
+                    let titleText = document.title.replace(/[^a-zA-Z0-9 ]/g, "").trim() || "Galeria";
                     
                     // Send to background
                     chrome.runtime.sendMessage({
@@ -92,6 +85,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     setTimeout(() => toast.remove(), 3000);
                 }, 2000); // Dar 2 seg de gracia
             }
-        }, 1000); // Moverse cada 1 segundo para asegurar carga
+        }, 300); // Moverse cada 300ms para hacer scroll rápido
     }
 });

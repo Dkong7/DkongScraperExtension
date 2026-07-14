@@ -24,6 +24,7 @@ chrome.storage.local.get(['mangaPreviewUrls', 'mangaPreviewTitle'], (data) => {
         
         titleEl.innerText = mangaTitle;
         countEl.innerText = `${urls.length} imágenes encontradas listas para descargar.`;
+        countEl.dataset.originalCount = urls.length;
         
         renderImages();
     } else {
@@ -52,6 +53,7 @@ function renderImages() {
         const box = document.createElement('div');
         box.className = 'frame-box';
         box.id = 'frame-' + index;
+        box.dataset.url = url;
         
         // Cargar las imágenes progresivamente para no saturar la memoria
         const img = document.createElement('img');
@@ -61,6 +63,27 @@ function renderImages() {
         const badge = document.createElement('div');
         badge.className = 'badge';
         badge.innerText = index + 1;
+
+        const deleteIcon = document.createElement('div');
+        deleteIcon.className = 'delete-icon';
+        deleteIcon.innerText = '❌';
+        
+        deleteIcon.addEventListener('click', (e) => {
+            e.stopPropagation(); // Evitar otros clics
+            box.classList.toggle('deleted');
+            
+            // Actualizar conteo visual
+            let total = parseInt(countEl.dataset.originalCount) || urls.length;
+            let deletedCount = document.querySelectorAll('.frame-box.deleted').length;
+            let remaining = total - deletedCount;
+            countEl.innerText = `${remaining} imágenes listas para descargar (${deletedCount} descartadas).`;
+            
+            if (remaining === 0) {
+                btnConfirm.disabled = true;
+            } else {
+                btnConfirm.disabled = false;
+            }
+        });
         
         const overlay = document.createElement('div');
         overlay.className = 'success-overlay';
@@ -68,6 +91,7 @@ function renderImages() {
 
         box.appendChild(img);
         box.appendChild(badge);
+        box.appendChild(deleteIcon);
         box.appendChild(overlay);
 
         container.appendChild(box);
@@ -85,16 +109,28 @@ btnConfirm.addEventListener('click', async () => {
     progressContainer.style.display = 'block';
     
     let settings = await chrome.storage.local.get('mangaSubfolder');
-    let baseFolder = settings.mangaSubfolder || "Mangas";
+    let baseFolder = settings.mangaSubfolder || "Descargas";
     let finalFolder = `${baseFolder}/${mangaTitle}`;
     
-    let successCount = 0;
+    // Solo descargar las que no están borradas
+    let framesToDownload = Array.from(document.querySelectorAll('.frame-box:not(.deleted)'));
+    
+    if (framesToDownload.length === 0) {
+        btnConfirm.innerText = "Ninguna imagen seleccionada";
+        return;
+    }
 
-    for (let i = 0; i < urls.length; i++) {
-        let url = urls[i];
+    let successCount = 0;
+    let actualIndex = 1;
+
+    for (let i = 0; i < framesToDownload.length; i++) {
+        let frame = framesToDownload[i];
+        let url = frame.dataset.url;
+        let originalId = frame.id;
+        
         let ext = url.split('.').pop().split('?')[0];
         if (ext.length > 4 || !['jpg','png','jpeg','webp','gif'].includes(ext)) ext = 'jpg';
-        let filename = `${String(i + 1).padStart(3, '0')}.${ext}`;
+        let filename = `${String(actualIndex).padStart(3, '0')}.${ext}`;
         
         try {
             let res = await fetch(url);
@@ -113,7 +149,7 @@ btnConfirm.addEventListener('click', async () => {
             
             // Éxito
             successCount++;
-            document.getElementById('frame-' + i).classList.add('downloaded');
+            document.getElementById(originalId).classList.add('downloaded');
             
         } catch (e) {
             console.error("Error fetching image, falling back to direct download", e);
@@ -124,13 +160,15 @@ btnConfirm.addEventListener('click', async () => {
                 saveAs: false
             });
             successCount++;
-            document.getElementById('frame-' + i).classList.add('downloaded');
+            document.getElementById(originalId).classList.add('downloaded');
         }
         
+        actualIndex++;
+        
         // Actualizar progreso
-        let percent = Math.round(((i + 1) / urls.length) * 100);
+        let percent = Math.round(((i + 1) / framesToDownload.length) * 100);
         progressBar.style.width = `${percent}%`;
-        progressText.innerText = `Descargando ${i + 1} de ${urls.length} (${percent}%)`;
+        progressText.innerText = `Descargando ${i + 1} de ${framesToDownload.length} (${percent}%)`;
     }
     
     btnConfirm.innerText = "¡Descarga Completada!";

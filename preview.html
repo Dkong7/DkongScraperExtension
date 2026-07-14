@@ -54,7 +54,41 @@
             background: #1a1512; border: 2px solid transparent; border-radius: 4px;
             overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;
             transition: transform 0.2s;
+            cursor: pointer;
         }
+
+        .delete-icon {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 25px;
+            height: 25px;
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            display: none;
+            z-index: 10;
+        }
+
+        .frame-box:hover .delete-icon {
+            display: flex;
+        }
+
+        .frame-box.deleted {
+            opacity: 0.3;
+            border: 2px solid red;
+        }
+        .frame-box.deleted .delete-icon {
+            display: flex;
+        }
+        
+        /* Barra Progreso */
         .frame-box:hover { transform: scale(1.05); border-color: #d97736; z-index: 10; }
         .frame-box img { width: 100%; display: block; object-fit: contain; }
         .frame-box .badge {
