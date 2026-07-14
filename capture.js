@@ -15,6 +15,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'start_scroll_capture') {
         startFullPageScroll();
     }
+    
+    if (request.action === 'show_audio_ui') {
+        showAudioRecordingUI();
+    }
 });
 
 function initOverlay() {
@@ -208,6 +212,91 @@ function showFloatingStopButton() {
         btn.remove();
     });
     document.body.appendChild(btn);
+}
+
+function showAudioRecordingUI() {
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.bottom = '30px';
+    container.style.right = '30px';
+    container.style.padding = '15px 25px';
+    container.style.backgroundColor = '#1a1512';
+    container.style.color = '#d97736';
+    container.style.border = '2px solid #d97736';
+    container.style.borderRadius = '50px';
+    container.style.display = 'flex';
+    container.style.alignItems = 'center';
+    container.style.gap = '15px';
+    container.style.fontFamily = 'sans-serif';
+    container.style.fontSize = '16px';
+    container.style.fontWeight = 'bold';
+    container.style.boxShadow = '0 4px 15px rgba(0,0,0,0.5)';
+    container.style.zIndex = '9999999999';
+
+    // Red dot animation
+    const dot = document.createElement('div');
+    dot.style.width = '12px';
+    dot.style.height = '12px';
+    dot.style.backgroundColor = '#dc3545';
+    dot.style.borderRadius = '50%';
+    dot.style.boxShadow = '0 0 8px #dc3545';
+    
+    // Keyframes for blinking
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @keyframes dkong-blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+        .dkong-blinking {
+            animation: dkong-blink 1.5s infinite;
+        }
+    `;
+    document.head.appendChild(style);
+    dot.className = 'dkong-blinking';
+
+    const text = document.createElement('span');
+    text.innerText = 'Grabando Audio...';
+
+    const btn = document.createElement('button');
+    btn.innerText = '⏹ Detener';
+    btn.style.padding = '8px 15px';
+    btn.style.backgroundColor = '#dc3545';
+    btn.style.color = 'white';
+    btn.style.border = 'none';
+    btn.style.borderRadius = '20px';
+    btn.style.fontWeight = 'bold';
+    btn.style.cursor = 'pointer';
+
+    btn.addEventListener('click', () => {
+        chrome.runtime.sendMessage({ action: 'stop_recording' });
+        container.remove();
+        style.remove();
+    });
+
+    // Drag logic
+    let isDragging = false;
+    let offsetX, offsetY;
+    container.addEventListener('mousedown', (e) => {
+        if (e.target === btn) return; // Don't drag if clicking button
+        isDragging = true;
+        offsetX = e.clientX - container.getBoundingClientRect().left;
+        offsetY = e.clientY - container.getBoundingClientRect().top;
+    });
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        container.style.left = (e.clientX - offsetX) + 'px';
+        container.style.top = (e.clientY - offsetY) + 'px';
+        container.style.right = 'auto';
+        container.style.bottom = 'auto';
+    });
+    document.addEventListener('mouseup', () => { isDragging = false; });
+
+    container.appendChild(dot);
+    container.appendChild(text);
+    container.appendChild(btn);
+    document.body.appendChild(container);
 }
 
 function removeOverlay() {

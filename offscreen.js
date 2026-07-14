@@ -109,7 +109,18 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
             // requestAnimationFrame does not work reliably in offscreen documents, use setInterval
             animationFrameId = setInterval(drawLoop, 1000 / 30);
 
-            if (currentMode === 'video' || currentMode === 'gif') {
+            if (currentMode === 'screenshot') {
+                // Give it a moment to render the first frame
+                setTimeout(() => {
+                    const dataUrl = canvasElement.toDataURL('image/png');
+                    stopAll();
+                    chrome.runtime.sendMessage({
+                        action: 'desktop_screenshot_captured',
+                        dataUrl: dataUrl
+                    });
+                    window.close();
+                }, 300);
+            } else if (currentMode === 'video' || currentMode === 'gif') {
                 const canvasStream = canvasElement.captureStream(currentMode === 'gif' ? 10 : 30); // 10 fps for GIF, 30 for Video
                 mediaRecorder = new MediaRecorder(canvasStream, { mimeType: 'video/webm' });
                 mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };

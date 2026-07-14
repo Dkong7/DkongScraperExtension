@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const openEditor = document.getElementById('openEditor');
     const playShutterSound = document.getElementById('playShutterSound');
     const imageFormatRadios = document.getElementsByName('imageFormat');
+    const screenshotModeRadios = document.getElementsByName('screenshotMode');
     const videoFormatRadios = document.getElementsByName('videoFormat');
     const screenshotSubfolder = document.getElementById('screenshotSubfolder');
     const videoSubfolder = document.getElementById('videoSubfolder');
@@ -48,6 +49,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         audioSubfolder.value = items.audioSubfolder;
         mangaSubfolder.value = items.mangaSubfolder;
         
+        for (let radio of screenshotModeRadios) {
+            if (radio.value === items.screenshotMode) radio.checked = true;
+        }
         for (let radio of imageFormatRadios) {
             if (radio.value === items.imageFormat) radio.checked = true;
         }
@@ -103,9 +107,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (radio.checked) videoFormat = radio.value;
         }
 
+        let screenshotMode = 'browser';
+        for (let radio of screenshotModeRadios) {
+            if (radio.checked) screenshotMode = radio.value;
+        }
+
         chrome.storage.local.set({
             openEditor: openEditor.checked,
             playShutterSound: playShutterSound.checked,
+            screenshotMode: screenshotMode,
             imageFormat: imageFormat,
             videoFormat: videoFormat,
             screenshotSubfolder: screenshotSubfolder.value,

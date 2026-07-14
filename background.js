@@ -76,6 +76,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
     }
 
+    if (request.action === 'desktop_screenshot_captured') {
+        openEditorWithImage(request.dataUrl);
+        return true;
+    }
+
     if (request.action === 'full_page_captured') {
         openEditorWithImage(request.dataUrl);
         return true;
@@ -167,15 +172,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         const mode = request.mode;
         
         if (mode === 'screenshot') {
-            const targetWindowId = sender.tab ? sender.tab.windowId : chrome.windows.WINDOW_ID_CURRENT;
-            chrome.tabs.captureVisibleTab(targetWindowId, {format: 'png'}, (dataUrl) => {
-                if (chrome.runtime.lastError) {
-                    console.error(chrome.runtime.lastError);
-                    return;
+            chrome.storage.local.get(['screenshotMode'], (settings) => {
+                const sMode = settings.screenshotMode || 'browser';
+                if (sMode === 'desktop') {
+                    startRecordingProcess('screen', 'screenshot', rect, sender.tab);
+                } else {
+                    const targetWindowId = sender.tab ? sender.tab.windowId : chrome.windows.WINDOW_ID_CURRENT;
+                    chrome.tabs.captureVisibleTab(targetWindowId, {format: 'png'}, (dataUrl) => {
+                        if (chrome.runtime.lastError) {
+                            console.error(chrome.runtime.lastError);
+                            return;
+                        }
+                        cropImage(dataUrl, rect).then(croppedUrl => {
+                            openEditorWithImage(croppedUrl);
+                        });
+                    });
                 }
-                cropImage(dataUrl, rect).then(croppedUrl => {
-                    openEditorWithImage(croppedUrl);
-                });
             });
         } else if (mode === 'video' || mode === 'gif') {
             startRecordingProcess('screen', mode, rect, sender.tab);
@@ -354,6 +366,15 @@ async function startRecordingProcess(type, mode = 'video', rect = null, tab = nu
         streamId: (type === 'screen' || type === 'audio') ? streamInfo.id : null,
         source: (type === 'screen' || type === 'audio') ? streamInfo.source : null
     });
+
+    if (type === 'audio' && tab) {
+        chrome.tabs.sendMessage(tab.id, { action: 'show_audio_ui' }).catch(async () => {
+            try {
+                await chrome.scripting.executeScript({ target: {tabId: tab.id}, files: ['capture.js'] });
+                chrome.tabs.sendMessage(tab.id, { action: 'show_audio_ui' });
+            } catch(e) {}
+        });
+    }
 }
 
 function stopRecordingProcess() {
