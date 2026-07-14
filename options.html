@@ -170,14 +170,37 @@
                     <label style="margin-left: 15px;"><input type="radio" name="imageFormat" value="jpeg"> JPG</label>
                 </div>
             </div>
+            <div class="setting-row">
+                <div class="setting-label">Subcarpeta</div>
+                <div class="setting-control">
+                    <input type="text" id="screenshotSubfolder" placeholder="Ej: Capturas" value="">
+                    <p style="font-size: 11px; color:#666; margin-top:4px;">Se creará dentro de tu directorio de salida.</p>
+                </div>
+            </div>
 
-            <h2>Recording</h2>
+            <h2>Recording (Video / GIF)</h2>
             <div class="setting-row">
                 <div class="setting-label">Formato de Video</div>
                 <div class="setting-control">
                     <label><input type="radio" name="videoFormat" value="webm" checked> WebM (Nativo, Ligero)</label>
                     <label style="margin-left: 15px;"><input type="radio" name="videoFormat" value="mp4"> MP4 (Requiere procesamiento interno)</label>
                     <label style="margin-left: 15px;"><input type="radio" name="videoFormat" value="gif"> GIF (Sin audio)</label>
+                </div>
+            </div>
+            <div class="setting-row">
+                <div class="setting-label">Subcarpeta</div>
+                <div class="setting-control">
+                    <input type="text" id="videoSubfolder" placeholder="Ej: Videos" value="">
+                    <p style="font-size: 11px; color:#666; margin-top:4px;">Se creará dentro de tu directorio de salida.</p>
+                </div>
+            </div>
+
+            <h2>Audio (Notas de voz)</h2>
+            <div class="setting-row">
+                <div class="setting-label">Subcarpeta</div>
+                <div class="setting-control">
+                    <input type="text" id="audioSubfolder" placeholder="Ej: Audios" value="">
+                    <p style="font-size: 11px; color:#666; margin-top:4px;">Se creará dentro de tu directorio de salida.</p>
                 </div>
             </div>
         </div>

@@ -53,6 +53,10 @@
     "record-video": {
       "suggested_key": { "default": "Ctrl+Shift+5", "windows": "Ctrl+Shift+5" },
       "description": "Grabar área de pantalla (Video MP4/WebM)"
+    },
+    "record-audio": {
+      "suggested_key": { "default": "Ctrl+Shift+6", "windows": "Ctrl+Shift+6" },
+      "description": "Grabar nota de audio"
     }
   }
 }

@@ -186,11 +186,15 @@ document.getElementById('btnSave').addEventListener('click', async () => {
         const res = await fetch(dataUrl);
         const blob = await res.blob();
         
+        const settings = await chrome.storage.local.get(['screenshotSubfolder']);
+        const subfolderName = settings.screenshotSubfolder || 'Capturas';
+        
         const handle = await window.storageManager.getDirectoryHandle('outputFolder');
         if (handle) {
             const hasPerm = await window.storageManager.verifyPermission(handle, true);
             if (hasPerm) {
-                const fileHandle = await handle.getFileHandle(filename, { create: true });
+                const targetDir = await handle.getDirectoryHandle(subfolderName, { create: true });
+                const fileHandle = await targetDir.getFileHandle(filename, { create: true });
                 const writable = await fileHandle.createWritable();
                 await writable.write(blob);
                 await writable.close();
@@ -203,9 +207,12 @@ document.getElementById('btnSave').addEventListener('click', async () => {
         console.log("No handle, falling back to chrome.downloads");
     }
 
+    const settingsFallback = await chrome.storage.local.get(['screenshotSubfolder']);
+    const subfolderFallback = settingsFallback.screenshotSubfolder || 'Capturas';
+
     chrome.downloads.download({
         url: dataUrl,
-        filename: `DkongScraper/${filename}`,
+        filename: `${subfolderFallback}/${filename}`,
         saveAs: false
     }, () => {
         alert('Imagen descargada.');

@@ -347,11 +347,15 @@ btnSave.addEventListener('click', async () => {
     const filename = `${prefix}_${Date.now()}.${ext}`;
 
     try {
+        const settings = await chrome.storage.local.get(['audioSubfolder', 'videoSubfolder']);
+        const subfolderName = mediaType === 'audio' ? (settings.audioSubfolder || 'Audios') : (settings.videoSubfolder || 'Videos');
+        
         const handle = await window.storageManager.getDirectoryHandle('outputFolder');
         if (handle) {
             const hasPerm = await window.storageManager.verifyPermission(handle, true);
             if (hasPerm) {
-                const fileHandle = await handle.getFileHandle(filename, { create: true });
+                const targetDir = await handle.getDirectoryHandle(subfolderName, { create: true });
+                const fileHandle = await targetDir.getFileHandle(filename, { create: true });
                 const writable = await fileHandle.createWritable();
                 await writable.write(finalBlob);
                 await writable.close();
@@ -365,10 +369,13 @@ btnSave.addEventListener('click', async () => {
     }
 
     // Fallback
+    const settingsFallback = await chrome.storage.local.get(['audioSubfolder', 'videoSubfolder']);
+    const subfolderFallback = mediaType === 'audio' ? (settingsFallback.audioSubfolder || 'Audios') : (settingsFallback.videoSubfolder || 'Videos');
+    
     const finalUrl = URL.createObjectURL(finalBlob);
     chrome.downloads.download({
         url: finalUrl,
-        filename: `DkongScraper/${filename}`,
+        filename: `${subfolderFallback}/${filename}`,
         saveAs: false
     }, () => {
         alert("¡Descarga iniciada!");

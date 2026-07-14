@@ -195,6 +195,8 @@ chrome.commands.onCommand.addListener((command) => {
             sendCaptureMessage(tabs[0], 'gif');
         } else if (command === 'record-video') {
             sendCaptureMessage(tabs[0], 'video');
+        } else if (command === 'record-audio') {
+            startRecordingProcess('audio', 'audio', null, tabs[0]);
         }
     });
 });
@@ -205,28 +207,45 @@ async function openEditorWithImage(dataUrl) {
     const blob = await res.blob();
     await self.storageManager.saveBlob('temp_image_blob', blob);
     
-    chrome.storage.local.get(['openEditor', 'playShutterSound'], (settings) => {
+    chrome.storage.local.get(['openEditor', 'playShutterSound', 'screenshotSubfolder'], (settings) => {
         if (settings.openEditor !== false) {
             chrome.tabs.create({ url: 'editor.html' });
         } else {
             // Save directly
-            saveDataUrlToFile(dataUrl, `Screenshot_${Date.now()}.png`);
+            saveDataUrlToFile(dataUrl, `Screenshot_${Date.now()}.png`, settings.screenshotSubfolder || 'Capturas');
         }
     });
 }
 
-async function saveDataUrlToFile(dataUrl, filename) {
+async function saveDataUrlToFile(dataUrl, filename, subfolderName) {
     const res = await fetch(dataUrl);
     const blob = await res.blob();
-    const saved = await saveToLocalDisk(filename, blob);
-    if (!saved) {
-        // Fallback
-        chrome.downloads.download({
-            url: dataUrl,
-            filename: `DkongScraper/${filename}`,
-            saveAs: false
-        });
-    }
+    
+    try {
+        const handle = await self.storageManager.getDirectoryHandle('outputFolder');
+        if (handle) {
+            const hasPerm = await self.storageManager.verifyPermission(handle, true);
+            if (hasPerm) {
+                // background.js is a Service Worker and cannot use createWritable.
+                // Delegate to offscreen document.
+                await self.storageManager.saveBlob('temp_direct_save', blob);
+                await setupOffscreenDocument('offscreen.html');
+                chrome.runtime.sendMessage({
+                    action: 'offscreen_save_blob',
+                    filename: filename,
+                    subfolder: subfolderName
+                });
+                return;
+            }
+        }
+    } catch(e) {}
+    
+    // Fallback
+    chrome.downloads.download({
+        url: dataUrl,
+        filename: `${subfolderName}/${filename}`,
+        saveAs: false
+    });
 }
 
 // Crop Image using Offscreen canvas (MV3 background scripts support OffscreenCanvas)

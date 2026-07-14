@@ -155,11 +155,15 @@ document.getElementById('btnSave').addEventListener('click', async () => {
         const filename = `Animated_${Date.now()}.webm`;
         
         try {
+            const settings = await chrome.storage.local.get(['videoSubfolder']);
+            const subfolderName = settings.videoSubfolder || 'Videos';
+            
             const handle = await window.storageManager.getDirectoryHandle('outputFolder');
             if (handle) {
                 const hasPerm = await window.storageManager.verifyPermission(handle, true);
                 if (hasPerm) {
-                    const fileHandle = await handle.getFileHandle(filename, { create: true });
+                    const targetDir = await handle.getDirectoryHandle(subfolderName, { create: true });
+                    const fileHandle = await targetDir.getFileHandle(filename, { create: true });
                     const writable = await fileHandle.createWritable();
                     await writable.write(blob);
                     await writable.close();
@@ -170,8 +174,11 @@ document.getElementById('btnSave').addEventListener('click', async () => {
             }
         } catch(e) {}
 
+        const settingsFallback = await chrome.storage.local.get(['videoSubfolder']);
+        const subfolderFallback = settingsFallback.videoSubfolder || 'Videos';
+        
         const url = URL.createObjectURL(blob);
-        chrome.downloads.download({ url: url, filename: `DkongScraper/${filename}` }, () => {
+        chrome.downloads.download({ url: url, filename: `${subfolderFallback}/${filename}` }, () => {
             alert('Descargado exitosamente.');
             window.close();
         });

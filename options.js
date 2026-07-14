@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const playShutterSound = document.getElementById('playShutterSound');
     const imageFormatRadios = document.getElementsByName('imageFormat');
     const videoFormatRadios = document.getElementsByName('videoFormat');
+    const screenshotSubfolder = document.getElementById('screenshotSubfolder');
+    const videoSubfolder = document.getElementById('videoSubfolder');
+    const audioSubfolder = document.getElementById('audioSubfolder');
     const mangaSubfolder = document.getElementById('mangaSubfolder');
     
     const btnSelectFolder = document.getElementById('btnSelectFolder');
@@ -33,10 +36,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         playShutterSound: true,
         imageFormat: 'png',
         videoFormat: 'webm',
+        screenshotSubfolder: 'Capturas',
+        videoSubfolder: 'Videos',
+        audioSubfolder: 'Audios',
         mangaSubfolder: 'Mangas'
     }, (items) => {
         openEditor.checked = items.openEditor;
         playShutterSound.checked = items.playShutterSound;
+        screenshotSubfolder.value = items.screenshotSubfolder;
+        videoSubfolder.value = items.videoSubfolder;
+        audioSubfolder.value = items.audioSubfolder;
         mangaSubfolder.value = items.mangaSubfolder;
         
         for (let radio of imageFormatRadios) {
@@ -99,6 +108,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             playShutterSound: playShutterSound.checked,
             imageFormat: imageFormat,
             videoFormat: videoFormat,
+            screenshotSubfolder: screenshotSubfolder.value,
+            videoSubfolder: videoSubfolder.value,
+            audioSubfolder: audioSubfolder.value,
             mangaSubfolder: mangaSubfolder.value
         }, () => {
             saveStatus.style.display = 'inline';

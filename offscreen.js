@@ -127,7 +127,34 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
             mediaRecorder.stop();
         }
     }
+
+    if (request.action === 'offscreen_save_blob') {
+        saveDirectBlob(request.filename, request.subfolder);
+    }
 });
+
+async function saveDirectBlob(filename, subfolderName) {
+    try {
+        const blob = await window.storageManager.getBlob('temp_direct_save');
+        if (!blob) return;
+        
+        const handle = await window.storageManager.getDirectoryHandle('outputFolder');
+        if (handle) {
+            const hasPerm = await window.storageManager.verifyPermission(handle, true);
+            if (hasPerm) {
+                const targetDir = await handle.getDirectoryHandle(subfolderName, { create: true });
+                const fileHandle = await targetDir.getFileHandle(filename, { create: true });
+                const writable = await fileHandle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+            }
+        }
+    } catch(e) {
+        console.error("Error direct saving from offscreen", e);
+    }
+    // Close offscreen after saving
+    setTimeout(() => window.close(), 100);
+}
 
 async function finishAudio() {
     const blob = new Blob(recordedChunks, { type: 'audio/webm' });
