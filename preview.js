@@ -59,6 +59,14 @@ function renderImages() {
         const img = document.createElement('img');
         img.loading = "lazy";
         img.src = url;
+        img.onerror = () => {
+            fetch(url)
+                .then(res => res.blob())
+                .then(blob => {
+                    img.src = URL.createObjectURL(blob);
+                })
+                .catch(e => console.warn('Could not load image fallback:', url));
+        };
         
         const badge = document.createElement('div');
         badge.className = 'badge';
@@ -128,8 +136,8 @@ btnConfirm.addEventListener('click', async () => {
         let url = frame.dataset.url;
         let originalId = frame.id;
         
-        let ext = url.split('.').pop().split('?')[0];
-        if (ext.length > 4 || !['jpg','png','jpeg','webp','gif'].includes(ext)) ext = 'jpg';
+        let ext = url.split('.').pop().split('?')[0].toLowerCase();
+        if (ext.length > 4 || !['jpg','png','jpeg','webp','gif','avif'].includes(ext)) ext = 'jpg';
         let filename = `${String(actualIndex).padStart(3, '0')}.${ext}`;
         
         try {

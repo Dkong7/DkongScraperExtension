@@ -87,6 +87,33 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 
     if (request.action === 'process_manga_downloads') {
+        try {
+            const urlObj = new URL(sender.tab.url);
+            const origin = urlObj.origin + "/";
+            const extId = chrome.runtime.id;
+            
+            if (chrome.declarativeNetRequest) {
+                chrome.declarativeNetRequest.updateDynamicRules({
+                    removeRuleIds: [1],
+                    addRules: [{
+                        id: 1,
+                        priority: 1,
+                        action: {
+                            type: "modifyHeaders",
+                            requestHeaders: [
+                                { header: "Referer", operation: "set", value: origin },
+                                { header: "Origin", operation: "set", value: origin }
+                            ]
+                        },
+                        condition: {
+                            initiatorDomains: [extId],
+                            resourceTypes: ["image", "xmlhttprequest"]
+                        }
+                    }]
+                });
+            }
+        } catch(e) { console.error("DNR Error", e); }
+
         chrome.storage.local.set({ 
             mangaPreviewUrls: request.urls, 
             mangaPreviewTitle: request.title 

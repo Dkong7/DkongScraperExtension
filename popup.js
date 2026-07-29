@@ -114,8 +114,91 @@ document.addEventListener('DOMContentLoaded', () => {
         status.innerText = "Extrayendo manga...";
         try {
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            chrome.tabs.sendMessage(tab.id, { action: 'download_manga' });
-            window.close();
+            if (!tab || !tab.id) throw new Error("Pestaña no válida");
+
+            // 1. Ejecutar en el mundo PRINCIPAL (MAIN WORLD) para acceder a variables globales de window sin errores CSP
+            try {
+                await chrome.scripting.executeScript({
+                    target: { tabId: tab.id },
+                    world: 'MAIN',
+                    func: () => {
+                        let urls = [];
+                        // Extraer variables globales de manga web (Kumanga, InManga, TMO, etc.)
+                        ['rpics', 'jaja', 'p', 'pages', 'images', 'chapter_pages', 'array_pages', 'pArray', 'lst_pages', 'img_list', 'paginas', 'fotos', 'urls', 'capitulo', 'manga'].forEach(v => {
+                            try {
+                                let val = window[v];
+                                if (val) {
+                                    if (Array.isArray(val)) {
+                                        val.forEach(item => {
+                                            if (typeof item === 'string') urls.push(item.replace(/\\/g, ''));
+                                            else if (item && typeof item === 'object') {
+                                                let u = item.url || item.src || item.img || item.image || item.page || item.file || item.source;
+                                                if (typeof u === 'string') urls.push(u.replace(/\\/g, ''));
+                                            }
+                                        });
+                                    } else if (typeof val === 'string' && val.length > 10) {
+                                        try {
+                                            const parsed = JSON.parse(val.replace(/\\\//g, '/').replace(/\\/g, ''));
+                                            if (Array.isArray(parsed)) {
+                                                parsed.forEach(item => {
+                                                    if (typeof item === 'string') urls.push(item.replace(/\\/g, ''));
+                                                });
+                                            }
+                                        } catch(e){}
+                                    }
+                                }
+                            } catch(e){}
+                        });
+
+                        // Exploración profunda en window por arrays de enlaces
+                        try {
+                            for (let k in window) {
+                                try {
+                                    let val = window[k];
+                                    if (val && Array.isArray(val) && val.length >= 2 && val.length <= 500) {
+                                        if (val.every(x => typeof x === 'string' && (x.includes('http') || x.includes('/') || x.includes('.jpg') || x.includes('.png') || x.includes('.webp')))) {
+                                            val.forEach(x => urls.push(x.replace(/\\/g, '')));
+                                        }
+                                    }
+                                } catch(e){}
+                            }
+                        } catch(e){}
+
+                        // Guardar en el DOM para lectura instantánea del script aislado
+                        if (urls.length > 0) {
+                            document.documentElement.dataset.mainWorldUrls = JSON.stringify([...new Set(urls)]);
+                        }
+
+                        // Activar botones de modo Cascada / Ver Todo si existen en la web
+                        try {
+                            const btns = Array.from(document.querySelectorAll('a, button, div, span, input')).filter(el => {
+                                const txt = (el.innerText || el.value || '').toLowerCase();
+                                const id = (el.id || '').toLowerCase();
+                                const cls = (typeof el.className === 'string' ? el.className : '').toLowerCase();
+                                return txt.includes('cascada') || txt.includes('cascade') || txt.includes('ver todo') || 
+                                       id.includes('cascada') || id.includes('cascade') || cls.includes('cascada') || cls.includes('cascade');
+                            });
+                            btns.forEach(b => { try { b.click(); } catch(e){} });
+                        } catch(e){}
+                    }
+                });
+            } catch(e) { console.log("Advertencia MAIN world:", e); }
+
+            // 2. Asegurar inyección del script descargador y enviar orden
+            try {
+                await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['manga_downloader.js'] });
+            } catch(e) { console.log("Script ya inyectado o error menor:", e); }
+
+            setTimeout(() => {
+                chrome.tabs.sendMessage(tab.id, { action: 'download_manga' }, (res) => {
+                    if (chrome.runtime.lastError) {
+                        status.innerText = "Por favor recarga la página (F5)";
+                    } else {
+                        status.innerText = "¡Procesando en pestaña!";
+                        setTimeout(() => window.close(), 800);
+                    }
+                });
+            }, 100);
         } catch (e) {
             status.innerText = "Error: " + e.message;
         }

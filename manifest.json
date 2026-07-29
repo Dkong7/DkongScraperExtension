@@ -17,7 +17,9 @@
     "desktopCapture",
     "tabCapture",
     "downloads",
-    "offscreen"
+    "offscreen",
+    "declarativeNetRequest",
+    "declarativeNetRequestWithHostAccess"
   ],
   "host_permissions": [
     "<all_urls>"
